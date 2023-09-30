@@ -37,7 +37,7 @@ jobs:
 
             - name: Check if remote exists
               run : | 
-                if git show-ref --verify --quiet "refs/heads/$branch"; then
+                if git show-ref --verify --quiet "refs/heads/auto-maintain-branch"; then
                   echo "Deleting the branch"
                   git push origin --delete --force auto-maintain-branch
                 else
