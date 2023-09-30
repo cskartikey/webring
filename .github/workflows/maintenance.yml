@@ -1,77 +1,74 @@
 name: Maintain Webring
 
 on:
-    push:
-        branches:
-            - main
-    schedule:
-        - cron: 0/15 * * * *
-    workflow_dispatch:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: 0/15 * * * *
+  workflow_dispatch:
 
 env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-        steps:
-            - uses: actions/checkout@v3
-              with:
-                  ref: main
-                  token: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-            - uses: pnpm/action-setup@v2
-              with:
-                  version: 8
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
 
-            - uses: actions/setup-node@v3
-              with:
-                  node-version: 18
-                  cache: "pnpm"
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: "pnpm"
 
-            - name: Run webring maintainance
-              run: |
-                  pnpm install
-                  pnpm maintain
+      - name: Run webring maintenance
+        run: |
+          pnpm install
+          pnpm maintain
 
-            - name: Commit files & Merge
-              run: |
+      - name: Commit files & Merge
+        run: |
+          # Define variables for repository name and branch
+          repository="cskartikey/webring"
+          branch="auto-maintain-branch"
 
-                  # Define variables for repository name and branch
-                  repository="cskartikey/webring"
-                  # repository="hackclub/webring"
-                  branch="auto-maintain-branch"
+          # Run the git ls-remote command with HTTPS URL and GITHUB_TOKEN
+          count=$(git ls-remote --heads "https://github.com/$repository.git" "refs/heads/$branch" | wc -l)
 
-                  # Run the git ls-remote command with HTTPS URL and GITHUB_TOKEN
-                  count=$(git ls-remote --heads "https://github.com/$repository.git" "refs/heads/$branch" | wc -l)
+          # Check if there are no changes to commit
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to commit."
+          elif [ "$count" -eq 0 ]; then
+            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git checkout -b auto-maintain-branch
+            git add .
+            git commit -m "Maintain Webring"
+            git push origin auto-maintain-branch
+            echo "Changes were committed."
+            gh pr create --title "Maintain Webring" --body "Maintain Webring" --base main --head auto-maintain-branch
+            gh pr merge auto-maintain-branch --squash --auto --delete-branch --subject "Maintain Webring" --body "Maintain Webring"
+          elif [ "$count" -eq 1 ]; then
+            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
+            git push origin --delete --force auto-maintain-branch
+            git checkout -b auto-maintain-branch
+            git add .
+            git commit -m "Maintain Webring"
+            git push origin auto-maintain-branch
+            echo "Changes were committed."
+            gh pr create --title "Maintain Webring" --body "Maintain Webring" --base main --head auto-maintain-branch
+            gh pr merge auto-maintain-branch --squash --auto --delete-branch --subject "Maintain Webring" --body "Maintain Webring"
+          fi
 
-                  # Check the count as needed
-                  if [ "$count" -eq 0 ] && [ ! "$(git diff-index --quiet HEAD --)" ]; then
-                    git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                    git config --local user.name "github-actions[bot]"
-                    git checkout -b auto-maintain-branch
-                    git add .
-                    git commit -m "Maintain Webring"
-                    git push origin auto-maintain-branch
-                    echo "Changes were committed."
-                    gh pr create --title "Maintain Webring" --body "Maintain Webring" --base main --head auto-maintain-branch
-                    gh pr merge auto-maintain-branch --squash --auto --delete-branch --subject "Maintain Webring" --body "Maintain Webring"
-                  elif [ "$count" -eq 1 ] && [ ! "$(git diff-index --quiet HEAD --)" ]; then
-                    git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                    git config --local user.name "github-actions[bot]"
-                    git push origin --delete --force auto-maintain-branch
-                    git checkout -b auto-maintain-branch
-                    git add .
-                    git commit -m "Maintain Webring"
-                    git push origin auto-maintain-branch
-                    echo "Changes were committed."
-                    gh pr create --title "Maintain Webring" --body "Maintain Webring" --base main --head auto-maintain-branch
-                    gh pr merge auto-maintain-branch --squash --auto --delete-branch --subject "Maintain Webring" --body "Maintain Webring"
-                  elif git diff-index --quiet HEAD --; then
-                    echo "No changes to commit."
-                  fi
-
-                
-              env:
-                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
