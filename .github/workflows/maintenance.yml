@@ -40,48 +40,6 @@ jobs:
           # Define variables for repository name and branch
           repository="cskartikey/webring"
           branch="auto-maintain-branch"
-          echo(name: Maintain Webring
-
-on:
-  push:
-    branches:
-      - main
-  schedule:
-    - cron: 0/15 * * * *
-  workflow_dispatch:
-
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-            ref: main
-            token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: pnpm/action-setup@v2
-        with:
-            version: 8
-
-      - uses: actions/setup-node@v3
-        with:
-            node-version: 18
-            cache: "pnpm"
-
-      - name: Run webring maintainance
-        run: |
-            pnpm install
-            pnpm maintain
-
-      - name: Commit & Merge
-        run: |
-          # Define variables for repository name and branch
-          repository="cskartikey/webring"
-          branch="auto-maintain-branch"
       
           # Check if the branch exists
           if git show-ref --verify --quiet "refs/heads/$branch"; then
