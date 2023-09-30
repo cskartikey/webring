@@ -37,11 +37,12 @@ jobs:
 
             - name: Check if remote exists
               run : | 
-                if git show-ref --verify --quiet "refs/heads/auto-maintain-branch"; then
+                output=$(git ls-remote --heads origin refs/heads/auto-maintain-branch)
+                if [ -z "$output" ]; then
+                  echo "Branch does not exists"
+                else
                   echo "Deleting the branch"
                   git push origin --delete --force auto-maintain-branch
-                else
-                  echo "Branch does not exists"
                 fi
 
             - name: Commit files & Merge
