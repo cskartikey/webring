@@ -48,6 +48,7 @@ jobs:
 
             # Check if the branch exists
             if git show-ref --verify --quiet "refs/heads/$branch"; then
+              echo "Deleting the branch"
               git push origin --delete --force $branch
               git checkout -b $branch
             else
