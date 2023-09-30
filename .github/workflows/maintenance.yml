@@ -68,8 +68,8 @@ jobs:
                     echo "Changes were committed."
                     gh pr create --title "Maintain Webring" --body "Maintain Webring" --base main --head auto-maintain-branch
                     gh pr merge auto-maintain-branch --squash --auto --delete-branch --subject "Maintain Webring" --body "Maintain Webring"
-                  else
-                    echo "No changes were commited"
+                  elif git diff-index --quiet HEAD --; then
+                    echo "No changes to commit."
                   fi
 
                 
