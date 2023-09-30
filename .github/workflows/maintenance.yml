@@ -112,39 +112,3 @@ jobs:
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-)
-          # Check if there are changes to commit
-          if ! git diff-index --quiet HEAD --; then
-            echo "lets debug :sob:"
-            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git config --local user.name "github-actions[bot]"
-
-            # Check if the branch exists
-            if git show-ref --verify --quiet "refs/heads/$branch"; then
-              echo "Deleting the branch"
-              git push origin --delete --force $branch
-              git checkout -b $branch
-            else
-              echo "I should be here"
-              git checkout -b $branch
-            fi
-
-            git add .
-            git commit -m "Maintain Webring"
-            git push origin $branch
-            echo "Changes were committed."
-
-            # Check if a pull request exists
-            if gh pr list --base main --head $branch | grep "Maintain Webring"; then
-              gh pr update --title "Maintain Webring" --body "Maintain Webring" --base main
-            else
-              gh pr create --title "Maintain Webring" --body "Maintain Webring" --base main --head $branch
-            fi
-
-            gh pr merge $branch --squash --auto --delete-branch --subject "Maintain Webring" --body "Maintain Webring"
-          else
-            echo "No changes to commit."
-          fi
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
