@@ -18,56 +18,57 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: main
-          token: ${{ secrets.GITHUB_TOKEN }}
+            ref: main
+            token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: pnpm/action-setup@v2
         with:
-          version: 8
+            version: 8
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 18
-          cache: "pnpm"
+            node-version: 18
+            cache: "pnpm"
 
-      - name: Run webring maintenance
+      - name: Run webring maintainance
         run: |
-          pnpm install
-          pnpm maintain
+            pnpm install
+            pnpm maintain
 
-      - name: Commit files & Merge
+      - name: Commit & Merge
         run: |
           # Define variables for repository name and branch
           repository="cskartikey/webring"
           branch="auto-maintain-branch"
 
-          # Run the git ls-remote command with HTTPS URL and GITHUB_TOKEN
-          count=$(git ls-remote --heads "https://github.com/$repository.git" "refs/heads/$branch" | wc -l)
+          # Check if there are changes to commit
+          if ! git diff-index --quiet HEAD --; then
+            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config --local user.name "github-actions[bot]"
 
-          # Check if there are no changes to commit
-          if git diff-index --quiet HEAD --; then
+            # Check if the branch exists
+            if git show-ref --verify --quiet "refs/heads/$branch"; then
+              git push origin --delete --force $branch
+              git checkout -b $branch
+            else
+              git checkout -b $branch
+            fi
+
+            git add .
+            git commit -m "Maintain Webring"
+            git push origin $branch
+            echo "Changes were committed."
+
+            # Check if a pull request exists
+            if gh pr list --base main --head $branch | grep "Maintain Webring"; then
+              gh pr update --title "Maintain Webring" --body "Maintain Webring" --base main
+            else
+              gh pr create --title "Maintain Webring" --body "Maintain Webring" --base main --head $branch
+            fi
+
+            gh pr merge $branch --squash --auto --delete-branch --subject "Maintain Webring" --body "Maintain Webring"
+          else
             echo "No changes to commit."
-          elif [ "$count" -eq 0 ]; then
-            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git config --local user.name "github-actions[bot]"
-            git checkout -b auto-maintain-branch
-            git add .
-            git commit -m "Maintain Webring"
-            git push origin auto-maintain-branch
-            echo "Changes were committed."
-            gh pr create --title "Maintain Webring" --body "Maintain Webring" --base main --head auto-maintain-branch
-            gh pr merge auto-maintain-branch --squash --auto --delete-branch --subject "Maintain Webring" --body "Maintain Webring"
-          elif [ "$count" -eq 1 ]; then
-            git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git config --local user.name "github-actions[bot]"
-            git push origin --delete --force auto-maintain-branch
-            git checkout -b auto-maintain-branch
-            git add .
-            git commit -m "Maintain Webring"
-            git push origin auto-maintain-branch
-            echo "Changes were committed."
-            gh pr create --title "Maintain Webring" --body "Maintain Webring" --base main --head auto-maintain-branch
-            gh pr merge auto-maintain-branch --squash --auto --delete-branch --subject "Maintain Webring" --body "Maintain Webring"
           fi
 
         env:
