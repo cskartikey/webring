@@ -39,7 +39,7 @@ jobs:
               run : | 
                 if git show-ref --verify --quiet "refs/heads/$branch"; then
                   echo "Deleting the branch"
-                  git push origin --delete --force $branch
+                  git push origin --delete --force auto-maintain-branch
                 else
                   echo "Branch does not exists"
                 fi
