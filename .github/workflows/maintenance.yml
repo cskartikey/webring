@@ -50,10 +50,16 @@ jobs:
                 git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
                 git config --local user.name "github-actions[bot]"
                 git checkout -b auto-maintain-branch
+                git add .
+                if [ -n "$(git status --porcelain)" ]; then
+                  echo "there are changes";
+                else
+                  echo "no changes";
+                fi
                 if git diff-index --quiet HEAD --; then
                   echo "No changes to commit."
                 else
-                  git add .
+                  echo "bruh"
                   git commit -m "Maintain Webring"
                   git push origin auto-maintain-branch
                   echo "Changes were committed."
